@@ -30,7 +30,7 @@ export default function Dashboard() {
     setQueryInput('');
 
     try {
-      const res = await fetch('${API_URL}/api/ai/query', {
+      const res = await fetch(`${API_URL}/api/ai/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: q })
@@ -69,14 +69,14 @@ export default function Dashboard() {
       try {
         setLoading(true);
         // Fetch dashboard summary
-        const summaryRes = await fetch('${API_URL}/api/dashboard-summary');
+        const summaryRes = await fetch(`${API_URL}/api/dashboard-summary`);
         const summaryData = await summaryRes.json();
 
         // Fetch products and batches for charts and critical alerts computation
-        const prodRes = await fetch('${API_URL}/api/products');
+        const prodRes = await fetch(`${API_URL}/api/products`);
         const prodData = await prodRes.json();
 
-        const batchRes = await fetch('${API_URL}/api/batches');
+        const batchRes = await fetch(`${API_URL}/api/batches`);
         const batchData = await batchRes.json();
 
         if (summaryData.error || prodData.error || batchData.error) {

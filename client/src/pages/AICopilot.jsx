@@ -19,7 +19,7 @@ export default function AICopilot() {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('${API_URL}/api/ai/reorder-suggestions');
+      const res = await fetch(`${API_URL}/api/ai/reorder-suggestions`);
       if (!res.ok) {
         throw new Error('API server returned error or Gemini is currently rate-limited.');
       }
@@ -31,7 +31,7 @@ export default function AICopilot() {
 
       // Local fallback suggestions based on reorder threshold if Gemini fails
       try {
-        const prodRes = await fetch('${API_URL}/api/products');
+        const prodRes = await fetch(`${API_URL}/api/products`);
         const prodData = await prodRes.json();
         const lowStock = prodData.filter(p => (parseInt(p.total_stock) || 0) < p.reorder_threshold);
 

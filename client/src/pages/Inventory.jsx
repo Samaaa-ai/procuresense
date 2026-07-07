@@ -16,10 +16,10 @@ export default function Inventory() {
       try {
         setLoading(true);
         setError(null);
-        const prodRes = await fetch('${API_URL}/api/products');
+        const prodRes = await fetch(`${API_URL}/api/products`);
         const prodData = await prodRes.json();
 
-        const batchRes = await fetch('${API_URL}/api/batches');
+        const batchRes = await fetch(`${API_URL}/api/batches`);
         const batchData = await batchRes.json();
 
         if (prodData.error || batchData.error) {

@@ -12,7 +12,7 @@ export default function Reports() {
     async function fetchMovements() {
       try {
         setLoading(true);
-        const res = await fetch('${API_URL}/api/stock-movements');
+        const res = await fetch(`${API_URL}/api/stock-movements`);
         const data = await res.json();
         setMovements(data);
       } catch (err) {

@@ -32,10 +32,10 @@ export default function StockEntry() {
   async function fetchData() {
     try {
       setLoading(true);
-      const prodRes = await fetch('${API_URL}/api/products');
+      const prodRes = await fetch(`${API_URL}/api/products`);
       const prodData = await prodRes.json();
 
-      const batchRes = await fetch('${API_URL}/api/batches');
+      const batchRes = await fetch(`${API_URL}/api/batches`);
       const batchData = await batchRes.json();
 
       setProducts(prodData);
@@ -103,7 +103,7 @@ export default function StockEntry() {
     }
 
     try {
-      const response = await fetch('${API_URL}/api/batches', {
+      const response = await fetch(`${API_URL}/api/batches`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -154,14 +154,14 @@ export default function StockEntry() {
     const selectedProd = products.find(p => p.id === parseInt(outProductId));
     const totalAvailable = selectedProd ? selectedProd.total_stock : 0;
     if (totalQty > totalAvailable) {
-      showStatus('error', `Insufficient stock. Only ${totalAvailable} units available.`);
+      showStatus('error', `Insufficient stock.Only ${totalAvailable} units available.`);
       return;
     }
 
     try {
       // Post a movement for each FIFO allocation
       for (const allocation of fifoAllocations) {
-        const response = await fetch('${API_URL}/api/stock-movements', {
+        const response = await fetch(`${API_URL}/api/stock-movements`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
