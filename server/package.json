@@ -4,7 +4,7 @@
   "description": "Backend API for ProcureSense",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "cd server && npm install && node server.js",
     "dev": "nodemon server.js",
     "db:seed": "node db/seed.js"
   },
