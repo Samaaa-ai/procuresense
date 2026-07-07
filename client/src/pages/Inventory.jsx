@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 import { Search, ChevronDown, ChevronUp, AlertCircle, AlertTriangle, CheckCircle, PackageOpen, HelpCircle } from 'lucide-react';
 
 export default function Inventory() {
@@ -15,10 +16,10 @@ export default function Inventory() {
       try {
         setLoading(true);
         setError(null);
-        const prodRes = await fetch('/api/products');
+        const prodRes = await fetch('${API_URL}/api/products');
         const prodData = await prodRes.json();
-        
-        const batchRes = await fetch('/api/batches');
+
+        const batchRes = await fetch('${API_URL}/api/batches');
         const batchData = await batchRes.json();
 
         if (prodData.error || batchData.error) {
@@ -47,9 +48,9 @@ export default function Inventory() {
 
   // Filter products
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                          p.sku.toLowerCase().includes(search.toLowerCase()) ||
-                          p.category.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.sku.toLowerCase().includes(search.toLowerCase()) ||
+      p.category.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === '' || p.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -57,7 +58,7 @@ export default function Inventory() {
   const getStatus = (p) => {
     const stock = parseInt(p.total_stock) || 0;
     const prodBatches = batches.filter(b => b.product_id === p.id && b.quantity > 0);
-    
+
     // Check if any batch is expiring within 7 days
     const now = new Date();
     const sevenDaysFromNow = new Date();
@@ -69,24 +70,24 @@ export default function Inventory() {
     });
 
     if (hasExpiringBatch) {
-      return { 
-        type: 'critical', 
-        label: 'Expiring Soon', 
+      return {
+        type: 'critical',
+        label: 'Expiring Soon',
         color: 'border-red-500/30 bg-red-950/20 text-red-400',
         badge: 'bg-red-500/20 text-red-400 border-red-500/30'
       };
     }
     if (stock < p.reorder_threshold) {
-      return { 
-        type: 'warning', 
-        label: 'Low Stock', 
+      return {
+        type: 'warning',
+        label: 'Low Stock',
         color: 'border-amber-500/30 bg-amber-950/20 text-amber-400',
         badge: 'bg-amber-500/20 text-amber-400 border-amber-500/30'
       };
     }
-    return { 
-      type: 'good', 
-      label: 'Optimal', 
+    return {
+      type: 'good',
+      label: 'Optimal',
       color: 'border-emerald-500/30 bg-emerald-950/10 text-emerald-400',
       badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
     };
@@ -165,12 +166,11 @@ export default function Inventory() {
                   return (
                     <React.Fragment key={p.id}>
                       {/* Product Row */}
-                      <tr 
+                      <tr
                         onClick={() => toggleRow(p.id)}
-                        className={`hover:bg-slate-800/40 cursor-pointer transition-colors border-l-2 ${
-                          status.type === 'critical' ? 'border-l-red-500' :
+                        className={`hover:bg-slate-800/40 cursor-pointer transition-colors border-l-2 ${status.type === 'critical' ? 'border-l-red-500' :
                           status.type === 'warning' ? 'border-l-amber-500' : 'border-l-emerald-500'
-                        }`}
+                          }`}
                       >
                         <td className="py-3 px-4">
                           {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
@@ -219,7 +219,7 @@ export default function Inventory() {
                                       const expDate = new Date(b.expiry_date);
                                       const now = new Date();
                                       const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-                                      
+
                                       let batchExpStatus = 'Safe';
                                       let expClass = 'text-slate-300';
                                       if (diffDays <= 7) {

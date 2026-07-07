@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Package, AlertTriangle, Clock, CircleDollarSign, ShieldAlert, ArrowUpRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom';
@@ -29,7 +30,7 @@ export default function Dashboard() {
     setQueryInput('');
 
     try {
-      const res = await fetch('/api/ai/query', {
+      const res = await fetch('${API_URL}/api/ai/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: q })
@@ -68,14 +69,14 @@ export default function Dashboard() {
       try {
         setLoading(true);
         // Fetch dashboard summary
-        const summaryRes = await fetch('/api/dashboard-summary');
+        const summaryRes = await fetch('${API_URL}/api/dashboard-summary');
         const summaryData = await summaryRes.json();
 
         // Fetch products and batches for charts and critical alerts computation
-        const prodRes = await fetch('/api/products');
+        const prodRes = await fetch('${API_URL}/api/products');
         const prodData = await prodRes.json();
 
-        const batchRes = await fetch('/api/batches');
+        const batchRes = await fetch('${API_URL}/api/batches');
         const batchData = await batchRes.json();
 
         if (summaryData.error || prodData.error || batchData.error) {
@@ -302,8 +303,8 @@ export default function Dashboard() {
               criticalAlerts.map(alert => (
                 <div key={alert.id} className="p-3 bg-red-950/20 border border-red-900/40 rounded-lg space-y-1.5">
                   <div className="flex justify-between items-start">
-                     <h4 className="text-xs font-bold text-slate-200 truncate max-w-[150px]">{alert.name}</h4>
-                     <span className="text-[10px] font-mono bg-red-950 text-red-400 px-1.5 py-0.5 rounded">
+                    <h4 className="text-xs font-bold text-slate-200 truncate max-w-[150px]">{alert.name}</h4>
+                    <span className="text-[10px] font-mono bg-red-950 text-red-400 px-1.5 py-0.5 rounded">
                       {alert.sku}
                     </span>
                   </div>

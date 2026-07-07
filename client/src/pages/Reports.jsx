@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 import { FileText, Download, Calendar, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export default function Reports() {
@@ -11,7 +12,7 @@ export default function Reports() {
     async function fetchMovements() {
       try {
         setLoading(true);
-        const res = await fetch('/api/stock-movements');
+        const res = await fetch('${API_URL}/api/stock-movements');
         const data = await res.json();
         setMovements(data);
       } catch (err) {
@@ -26,7 +27,7 @@ export default function Reports() {
   // Filter movements by date range
   const filteredMovements = movements.filter(m => {
     const moveDate = new Date(m.timestamp);
-    
+
     // Normalize date strings
     const start = startDate ? new Date(startDate + 'T00:00:00') : null;
     const end = endDate ? new Date(endDate + 'T23:59:59') : null;
@@ -150,11 +151,10 @@ export default function Reports() {
                     </td>
                     <td className="py-3 px-4 font-mono font-semibold text-slate-400">{m.batch_number}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-bold ${
-                        m.type === 'inward' 
-                          ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/30' 
-                          : 'bg-red-950/60 text-red-400 border border-red-900/30'
-                      }`}>
+                      <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-bold ${m.type === 'inward'
+                        ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/30'
+                        : 'bg-red-950/60 text-red-400 border border-red-900/30'
+                        }`}>
                         {m.type === 'inward' ? <ArrowDownLeft size={10} /> : <ArrowUpRight size={10} />}
                         {m.type.toUpperCase()}
                       </span>

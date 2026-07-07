@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 import { Sparkles, AlertTriangle, AlertCircle, ShoppingCart, Check, X, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function AICopilot() {
   const [loading, setLoading] = useState(true);
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState(null);
-  
+
   // Purchase Order Modal state
   const [activePO, setActivePO] = useState(null);
   const [poSuccess, setPoSuccess] = useState(false);
@@ -18,7 +19,7 @@ export default function AICopilot() {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/ai/reorder-suggestions');
+      const res = await fetch('${API_URL}/api/ai/reorder-suggestions');
       if (!res.ok) {
         throw new Error('API server returned error or Gemini is currently rate-limited.');
       }
@@ -27,13 +28,13 @@ export default function AICopilot() {
     } catch (err) {
       console.error(err);
       setError('Gemini API is unavailable or rate-limited. Using local fallback rules.');
-      
+
       // Local fallback suggestions based on reorder threshold if Gemini fails
       try {
-        const prodRes = await fetch('/api/products');
+        const prodRes = await fetch('${API_URL}/api/products');
         const prodData = await prodRes.json();
         const lowStock = prodData.filter(p => (parseInt(p.total_stock) || 0) < p.reorder_threshold);
-        
+
         const fallback = lowStock.map(p => ({
           product_name: p.name,
           current_stock: p.total_stock,
@@ -144,7 +145,7 @@ export default function AICopilot() {
               {sortedSuggestions.map((s, idx) => {
                 const isHigh = s.urgency === 'high';
                 const isMedium = s.urgency === 'medium';
-                
+
                 let urgencyBadge = 'bg-slate-800 text-slate-400 border-slate-700';
                 if (isHigh) urgencyBadge = 'bg-red-500/20 text-red-400 border-red-500/30';
                 else if (isMedium) urgencyBadge = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
@@ -158,7 +159,7 @@ export default function AICopilot() {
                           {s.urgency.toUpperCase()}
                         </span>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-2 text-xs border-y border-slate-800/80 py-2">
                         <div>
                           <p className="text-slate-500 font-medium">Current Stock</p>
@@ -185,11 +186,10 @@ export default function AICopilot() {
                       </div>
                       <button
                         onClick={() => handleOpenPO(s)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                          isHigh 
-                            ? 'bg-teal-800 hover:bg-teal-700 text-white shadow-md shadow-teal-950/20' 
-                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                        }`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isHigh
+                          ? 'bg-teal-800 hover:bg-teal-700 text-white shadow-md shadow-teal-950/20'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                          }`}
                       >
                         <ShoppingCart size={12} />
                         <span>Draft PO</span>
@@ -213,7 +213,7 @@ export default function AICopilot() {
                 <FileText className="text-teal-400 w-5 h-5" />
                 <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Purchase Order Draft</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setActivePO(null)}
                 className="text-slate-500 hover:text-slate-300"
               >

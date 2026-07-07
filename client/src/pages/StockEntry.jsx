@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 import { ArrowDownLeft, ArrowUpRight, HelpCircle, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function StockEntry() {
@@ -31,10 +32,10 @@ export default function StockEntry() {
   async function fetchData() {
     try {
       setLoading(true);
-      const prodRes = await fetch('/api/products');
+      const prodRes = await fetch('${API_URL}/api/products');
       const prodData = await prodRes.json();
-      
-      const batchRes = await fetch('/api/batches');
+
+      const batchRes = await fetch('${API_URL}/api/batches');
       const batchData = await batchRes.json();
 
       setProducts(prodData);
@@ -102,7 +103,7 @@ export default function StockEntry() {
     }
 
     try {
-      const response = await fetch('/api/batches', {
+      const response = await fetch('${API_URL}/api/batches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -121,14 +122,14 @@ export default function StockEntry() {
       }
 
       showStatus('success', `Successfully registered Batch ${inBatchNumber} with ${qty} units.`);
-      
+
       // Reset form
       setInBatchNumber('');
       setInQuantity('');
       setInExpiryDate('');
       setInWarehouseLocation('');
       setInReference('');
-      
+
       // Refresh DB data
       fetchData();
     } catch (err) {
@@ -160,7 +161,7 @@ export default function StockEntry() {
     try {
       // Post a movement for each FIFO allocation
       for (const allocation of fifoAllocations) {
-        const response = await fetch('/api/stock-movements', {
+        const response = await fetch('${API_URL}/api/stock-movements', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -179,11 +180,11 @@ export default function StockEntry() {
       }
 
       showStatus('success', `Dispatched ${totalQty} units under FIFO protocol.`);
-      
+
       // Reset form
       setOutQuantity('');
       setOutReference('');
-      
+
       // Refresh DB data
       fetchData();
     } catch (err) {
@@ -203,11 +204,10 @@ export default function StockEntry() {
 
       {/* Status Banner */}
       {statusMessage && (
-        <div className={`p-4 rounded-xl border flex items-center gap-3 transition-opacity duration-300 ${
-          statusMessage.type === 'success' 
-            ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-400' 
-            : 'bg-red-950/20 border-red-500/20 text-red-400'
-        }`}>
+        <div className={`p-4 rounded-xl border flex items-center gap-3 transition-opacity duration-300 ${statusMessage.type === 'success'
+          ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-400'
+          : 'bg-red-950/20 border-red-500/20 text-red-400'
+          }`}>
           {statusMessage.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span className="text-sm font-semibold">{statusMessage.text}</span>
         </div>
@@ -217,22 +217,20 @@ export default function StockEntry() {
       <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
         <button
           onClick={() => setMovementType('inward')}
-          className={`flex-1 py-3 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all ${
-            movementType === 'inward'
-              ? 'bg-teal-950 text-teal-400 border border-teal-800/40 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className={`flex-1 py-3 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all ${movementType === 'inward'
+            ? 'bg-teal-950 text-teal-400 border border-teal-800/40 shadow-sm'
+            : 'text-slate-400 hover:text-slate-200'
+            }`}
         >
           <ArrowDownLeft size={16} />
           Inward Stock Entry
         </button>
         <button
           onClick={() => setMovementType('outward')}
-          className={`flex-1 py-3 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all ${
-            movementType === 'outward'
-              ? 'bg-teal-950 text-teal-400 border border-teal-800/40 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className={`flex-1 py-3 flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all ${movementType === 'outward'
+            ? 'bg-teal-950 text-teal-400 border border-teal-800/40 shadow-sm'
+            : 'text-slate-400 hover:text-slate-200'
+            }`}
         >
           <ArrowUpRight size={16} />
           Outward Dispatch (FIFO)
@@ -247,7 +245,7 @@ export default function StockEntry() {
           /* INWARD FORM */
           <form onSubmit={handleInwardSubmit} className="space-y-4">
             <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">Record Inbound Batch</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Product Select */}
               <div className="flex flex-col gap-1.5">
@@ -340,7 +338,7 @@ export default function StockEntry() {
           /* OUTWARD FORM */
           <form onSubmit={handleOutwardSubmit} className="space-y-4">
             <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2">Record Outbound Dispatch</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Product Select */}
               <div className="flex flex-col gap-1.5">
