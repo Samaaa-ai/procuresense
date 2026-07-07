@@ -17,11 +17,12 @@ const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
   database: process.env.DB_DATABASE || 'procuresense',
+  ssl: { rejectUnauthorized: false },
 });
 
 async function seed() {
   log('Starting database seeding...');
-  
+
   // Create a temporary connection to postgres database to ensure procuresense database exists
   const tempPool = new Pool({
     user: process.env.DB_USER || 'postgres',
@@ -29,8 +30,9 @@ async function seed() {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
     database: 'postgres',
+    ssl: { rejectUnauthorized: false },
   });
-  
+
   try {
     const dbName = process.env.DB_DATABASE || 'procuresense';
     log(`Checking if database "${dbName}" exists...`);
@@ -128,19 +130,19 @@ async function seed() {
     log('Seeding batches and stock movements with realistic patterns...');
     const now = new Date();
     const skus = Object.keys(productMap);
-    
+
     for (const sku of skus) {
       const productId = productMap[sku];
       const isFastMoving = ['TR-007', 'HS-002', 'NG-004', 'DS-006'].includes(sku);
       const isSlowMoving = ['MH-005', 'LD-003', 'FM-015'].includes(sku);
       const isDemoAlert = ['HS-002', 'DS-006', 'FM-015'].includes(sku);
-      
+
       const numBatches = isDemoAlert ? 1 : (Math.random() < 0.5 ? 2 : 3);
-      
+
       for (let b = 1; b <= numBatches; b++) {
         const batchNum = `B-${sku}-${100 + b}`;
         const loc = `WH-SEC-${String.fromCharCode(65 + Math.floor(Math.random() * 4))}-${Math.floor(Math.random() * 10) + 1}`;
-        
+
         let expiryDays = 90;
         if (isDemoAlert) {
           expiryDays = 3;
@@ -149,47 +151,47 @@ async function seed() {
         } else {
           expiryDays = 365 + Math.floor(Math.random() * 200);
         }
-        
+
         const expiryDate = new Date();
         expiryDate.setDate(now.getDate() + expiryDays);
-        
+
         const receivedDaysAgo = 30 + Math.floor(Math.random() * 30);
         const receivedDate = new Date();
         receivedDate.setDate(now.getDate() - receivedDaysAgo);
-        
+
         let initialQty;
         if (isDemoAlert) {
           initialQty = sku === 'HS-002' ? 12 : (sku === 'DS-006' ? 8 : 5);
         } else {
           initialQty = isFastMoving ? 150 + Math.floor(Math.random() * 100) : 30 + Math.floor(Math.random() * 20);
         }
-        
+
         const batchRes = await client.query(
           `INSERT INTO batches (product_id, batch_number, quantity, expiry_date, received_date, warehouse_location) 
            VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
           [productId, batchNum, initialQty, expiryDate, receivedDate, loc]
         );
         const batchId = batchRes.rows[0].id;
-        
+
         await client.query(
           `INSERT INTO stock_movements (product_id, batch_id, type, quantity, timestamp, reference_note)
            VALUES ($1, $2, 'inward', $3, $4, $5)`,
           [productId, batchId, initialQty, receivedDate, `Initial stocking for batch ${batchNum}`]
         );
-        
+
         let remainingQty = initialQty;
-        
+
         if (!isDemoAlert) {
           const numMovements = isFastMoving ? 5 + Math.floor(Math.random() * 5) : (isSlowMoving ? 1 : 2 + Math.floor(Math.random() * 2));
-          
+
           for (let m = 0; m < numMovements; m++) {
             const moveDaysAgo = receivedDaysAgo - Math.floor(Math.random() * receivedDaysAgo);
             const moveDate = new Date();
             moveDate.setDate(now.getDate() - moveDaysAgo);
-            
+
             const maxOutQty = Math.floor(remainingQty * 0.25) || 1;
             const outQty = Math.max(1, Math.floor(Math.random() * maxOutQty));
-            
+
             if (remainingQty - outQty >= 0) {
               await client.query(
                 `INSERT INTO stock_movements (product_id, batch_id, type, quantity, timestamp, reference_note)
@@ -200,7 +202,7 @@ async function seed() {
             }
           }
         }
-        
+
         await client.query(
           'UPDATE batches SET quantity = $1 WHERE id = $2',
           [remainingQty, batchId]
