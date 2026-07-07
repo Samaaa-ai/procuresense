@@ -9,6 +9,7 @@ const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', router);
 
 // Database connection pool
 const pool = new Pool({
@@ -27,7 +28,7 @@ const query = (text, params) => pool.query(text, params);
 // ----------------------------------------------------
 
 // GET /products - Get all products (with optional aggregate total stock)
-app.get('/products', async (req, res) => {
+app.get('/api/products', async (req, res) => {
   try {
     const sql = `
       SELECT p.*, COALESCE(SUM(b.quantity), 0)::integer as total_stock
@@ -45,7 +46,7 @@ app.get('/products', async (req, res) => {
 });
 
 // POST /products - Create new product
-app.post('/products', async (req, res) => {
+app.post('/api/products', async (req, res) => {
   const { sku, name, category, unit, reorder_threshold, unit_price } = req.body;
   if (!sku || !name || !category || !unit) {
     return res.status(400).json({ error: 'sku, name, category, and unit are required fields' });
@@ -76,7 +77,7 @@ app.post('/products', async (req, res) => {
 });
 
 // GET /batches - Get all batches (including product name and SKU)
-app.get('/batches', async (req, res) => {
+app.get('/api/batches', async (req, res) => {
   try {
     const sql = `
       SELECT b.*, p.name as product_name, p.sku as product_sku
@@ -93,7 +94,7 @@ app.get('/batches', async (req, res) => {
 });
 
 // POST /batches - Create new batch
-app.post('/batches', async (req, res) => {
+app.post('/api/batches', async (req, res) => {
   const { product_id, batch_number, quantity, expiry_date, received_date, warehouse_location } = req.body;
   if (!product_id || !batch_number || quantity === undefined || !expiry_date || !warehouse_location) {
     return res.status(400).json({ error: 'product_id, batch_number, quantity, expiry_date, and warehouse_location are required' });
@@ -129,7 +130,7 @@ app.post('/batches', async (req, res) => {
 });
 
 // GET /stock-movements - Get all movements with product and batch information
-app.get('/stock-movements', async (req, res) => {
+app.get('/api/stock-movements', async (req, res) => {
   try {
     const sql = `
       SELECT sm.*, p.name as product_name, p.sku as product_sku, b.batch_number
@@ -147,7 +148,7 @@ app.get('/stock-movements', async (req, res) => {
 });
 
 // POST /stock-movements - Create new stock movement and update batch stock level
-app.post('/stock-movements', async (req, res) => {
+app.post('/api/stock-movements', async (req, res) => {
   const { product_id, batch_id, type, quantity, reference_note } = req.body;
   if (!product_id || !batch_id || !type || !quantity) {
     return res.status(400).json({ error: 'product_id, batch_id, type, and quantity are required' });
@@ -198,7 +199,7 @@ app.post('/stock-movements', async (req, res) => {
 });
 
 // GET /dashboard-summary - Aggregate data for dashboard cards
-app.get('/dashboard-summary', async (req, res) => {
+app.get('/api/dashboard-summary', async (req, res) => {
   try {
     // 1. Total SKUs
     const totalSkusRes = await query('SELECT COUNT(*)::integer FROM products');
@@ -258,7 +259,7 @@ const getGenAI = () => {
 };
 
 // GET /ai/reorder-suggestions
-app.get('/ai/reorder-suggestions', async (req, res) => {
+app.get('/api/ai/reorder-suggestions', async (req, res) => {
   try {
     // 1. Fetch live stock status, reorder thresholds, and active batches
     const productsRes = await query(`
@@ -362,7 +363,7 @@ app.get('/ai/reorder-suggestions', async (req, res) => {
 });
 
 // POST /ai/query
-app.post('/ai/query', async (req, res) => {
+app.post('/api/ai/query', async (req, res) => {
   const { question } = req.body;
   if (!question) {
     return res.status(400).json({ error: 'Question is required' });
